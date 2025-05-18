@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadRestaurants(location = '') {
-    let url = 'http://localhost:5000/api/restaurants';
+    let url = 'http://localhost:3000/api/restaurants';
     if (location) {
         url += `?location=${encodeURIComponent(location)}`;
     }
@@ -68,7 +68,7 @@ function loadMenuForRestaurant() {
         return;
     }
 
-    fetch(`http://localhost:5000/api/menu?restaurant_id=${restaurantId}`)
+    fetch(`http://localhost:3000/api/menu?restaurant_id=${restaurantId}`)
         .then(response => response.json())
         .then(data => {
             if (data.length === 0) {
