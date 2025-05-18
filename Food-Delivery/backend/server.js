@@ -4,17 +4,23 @@ const path = require('path');
 const db = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-
+const bodyParser = require('body-parser');
 const app = express();
+const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
+
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
 // Get restaurants (optionally by location)
 app.get('/api/restaurants', async (req, res) => {
   const location = req.query.location;
@@ -59,5 +65,4 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-const PORT = 5000;
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
