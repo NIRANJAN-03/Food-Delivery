@@ -1,3 +1,4 @@
+//login.js
 document.getElementById("login-form").addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -17,12 +18,16 @@ document.getElementById("login-form").addEventListener("submit", async function 
         const data = await res.json();
 
         if (res.ok) {
+            // ✅ Save user info in localStorage
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            // ✅ Also store email separately for quick access (used in cart.js)
+            localStorage.setItem("userEmail", data.user.email);
+
             // Fetch order history
             const ordersRes = await fetch(`http://localhost:3000/api/users/orders?email=${email}`);
             const ordersData = await ordersRes.json();
 
-            // Store user & orders in localStorage
-            localStorage.setItem("user", JSON.stringify(data.user));
             localStorage.setItem("orders", JSON.stringify(ordersData));
 
             showUserInfo(data.user, ordersData);
@@ -37,7 +42,7 @@ document.getElementById("login-form").addEventListener("submit", async function 
     }
 });
 
-// On page load, restore user if logged in
+// ✅ On page load, restore user info if logged in
 window.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const orders = JSON.parse(localStorage.getItem("orders"));
@@ -47,21 +52,22 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Function to render user info & logout
+// ✅ Show user info and handle logout
 function showUserInfo(user, orders) {
     document.getElementById("login-form").style.display = "none";
 
     let ordersHTML = "";
 
-    if (orders.length === 0) {
+    if (!orders || orders.length === 0) {
         ordersHTML = "<p>No orders found.</p>";
     } else {
         orders.forEach(order => {
             ordersHTML += `
-                <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                <div>
                     <p><strong>Order ID:</strong> ${order.id}</p>
                     <p><strong>Total Price:</strong> ₹${order.total_price}</p>
                     <p><strong>Status:</strong> ${order.status}</p>
+                    <button id=ord_details> View Details</button>
                 </div>
             `;
         });
@@ -70,22 +76,35 @@ function showUserInfo(user, orders) {
     document.getElementById("user-profile").innerHTML = `
         <h2>Welcome, ${user.name}!</h2>
         <p><strong>Email:</strong> ${user.email}</p>
-        <h3>Your Orders:</h3>
-        ${ordersHTML}
+        <button onclick="toggleOrderHistory()" id="order-history-btn">Order History</button>
+
+        <div id="order-history" style="display: none;">
+            ${ordersHTML}
+        </div>
+
         <button id="logout-btn">Logout</button>
     `;
 
     document.getElementById("user-profile").style.display = "block";
 
-    // Handle logout
     document.getElementById("logout-btn").addEventListener("click", function () {
         localStorage.removeItem("user");
         localStorage.removeItem("orders");
-
         document.getElementById("login-form").style.display = "block";
         document.getElementById("user-profile").style.display = "none";
-        document.getElementById("name").value = "";
-        document.getElementById("email").value = "";
-        document.getElementById("password").value = "";
     });
 }
+
+function toggleOrderHistory() {
+    const historyDiv = document.getElementById("order-history");
+    const button = document.getElementById("order-history-btn");
+
+    if (historyDiv.style.display === "none") {
+        historyDiv.style.display = "block";
+        button.textContent = "Hide Order History";
+    } else {
+        historyDiv.style.display = "none";
+        button.textContent = "Order History";
+    }
+}
+
