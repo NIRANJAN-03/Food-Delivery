@@ -42,15 +42,32 @@ document.getElementById("login-form").addEventListener("submit", async function 
     }
 });
 
-// ✅ On page load, restore user info if logged in
-window.addEventListener("DOMContentLoaded", () => {
+// On page load, restore user info if logged in and fetch fresh orders
+window.addEventListener("DOMContentLoaded", async () => {
     const user = JSON.parse(localStorage.getItem("user"));
-    const orders = JSON.parse(localStorage.getItem("orders"));
 
     if (user) {
-        showUserInfo(user, orders || []);
+        let orders = [];
+
+        try {
+            // Fetch fresh orders from the server using stored user email
+            const ordersRes = await fetch(`http://localhost:3000/api/users/orders?email=${user.email}`);
+            if (ordersRes.ok) {
+                orders = await ordersRes.json();
+                localStorage.setItem("orders", JSON.stringify(orders));
+            } else {
+                // If API fails, fallback to cached orders if any
+                orders = JSON.parse(localStorage.getItem("orders")) || [];
+            }
+        } catch (error) {
+            console.error("Failed to fetch orders on page load:", error);
+            orders = JSON.parse(localStorage.getItem("orders")) || [];
+        }
+
+        showUserInfo(user, orders);
     }
 });
+
 
 // ✅ Show user info and handle logout
 function showUserInfo(user, orders) {
